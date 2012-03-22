@@ -103,11 +103,11 @@ class ThemeTests : public CxxTest::TestSuite
 		}
 		
 		iterate(it, ordering) {
-			printf("item: %.5f %s\n", it->first, it->second.c_str());
+			//printf("item: %.5f %s\n", it->first, it->second.c_str());
 			total += it->first;
 		}
 	   }
-	 	printf("%.4f seconds to computed oldstyle:%.1f\n", timer1.duration(), total);
+	 	printf ("%.4f seconds to computed oldstyle:%.1f\n", timer1.duration(), total);
 		
 	}
 	struct rules_t {
@@ -209,7 +209,7 @@ class ThemeTests : public CxxTest::TestSuite
 				p.back().push_back(*c);				
 		}
 
-		//f// printf(stderr, "pathx: %s\n", root.to_s().c_str());
+		//f// //printf(stderr, "pathx: %s\n", root.to_s().c_str());
 		npow2 total;		
 		oak::duration_t timer2;
 		
@@ -223,7 +223,7 @@ class ThemeTests : public CxxTest::TestSuite
 			rules_t::internal_t v;
 			int power = 0;
 			npow2 sco(1);
-			printf("score 1 b:%llu \n", sco.backing);
+			//printf("score 1 b:%llu \n", sco.backing);
 			
 		while(s--)
 		{
@@ -240,10 +240,10 @@ class ThemeTests : public CxxTest::TestSuite
 				{
 
 					npow2 score(power - j);
-					printf("ffs p:%d j:%d b:%llu s:%s\n",power, j, score.backing, p[s][j-1].c_str());
+					//printf("ffs p:%d j:%d b:%llu s:%s\n",power, j, score.backing, p[s][j-1].c_str());
 
 					score-=npow2(power);
-					printf("ffs b:%llu \n", score.backing);
+					//printf("ffs b:%llu \n", score.backing);
 					
 					collector[path->id] = score;
 				}
@@ -254,12 +254,12 @@ class ThemeTests : public CxxTest::TestSuite
 		} 
 		/*
 		iterate(it, v) {
-			// printf("vector item: %#x \n", *it);
+			// //printf("vector item: %#x \n", *it);
 		}
 		*/
 		
 		while(int idx = ffs(computed)) {
-			// printf("ffs %d %s\n",idx, selectorStrings[idx-1].c_str());
+			// //printf("ffs %d %s\n",idx, selectorStrings[idx-1].c_str());
 			
 			npow2 rank;
 			if(does_match(v, matchingSelectors[idx - 1],&rank) ) {
@@ -267,26 +267,26 @@ class ThemeTests : public CxxTest::TestSuite
 				if( val < rank)
 					val = rank;
 					
-				// printf("---ffs %d\n matched",idx);
+				// //printf("---ffs %d\n matched",idx);
 
 			}
 			computed &= ~(1<<idx-1);
 		}
 		int index = 0;
 		iterate(it, collector) {
-			printf("collector item: %llu %d\n", it->backing, index);
+			//printf("collector item: %llu %d\n", it->backing, index);
 
 			ordering.insert(std::make_pair(*it, selectorStrings[index++]));
 		}
 		
 		iterate(it, ordering) {
-			printf("item:  %llu %s\n", it->first.backing, it->second.c_str());
+			//printf("item:  %llu %s\n", it->first.backing, it->second.c_str());
 			total += it->first;
 		}
 	   		
 		}
 		
-		printf("%.4f seconds to computed path_x:%llu \n", timer2.duration(), total.backing);
+		printf ("%.4f seconds to computed path_x:%llu \n", timer2.duration(), total.backing);
 	}
 	static size_t route_length(const int& route) {
 		if(route & 2){ // 1<<1
@@ -303,8 +303,8 @@ class ThemeTests : public CxxTest::TestSuite
 		size_t i = path.size(); // “source.ruby string.quoted.double constant.character”
 		size_t j = scopes.size();      // “string > constant $”
 		size_t s = i;
-		// printf("path size: %zu\n", i);
-		// printf("size: %zu\n", j);
+		// //printf("path size: %zu\n", i);
+		// //printf("size: %zu\n", j);
 
 		npow2 score;
 		int power = 0;
@@ -313,7 +313,7 @@ class ThemeTests : public CxxTest::TestSuite
 			// if(anchor_to_bol)
 			// if(anchor_to_next)
 			power += path[s-i].size;//route_length(path[s-i]);
-			// printf("scope:%#x path:%#x mask:%#x masked:%#x i=%zu j=%zu\n ", scopes[j-1].pattern, path[s-i], scopes[j-1].mask, path[s-i] & scopes[j-1].mask, i, j);
+			// //printf("scope:%#x path:%#x mask:%#x masked:%#x i=%zu j=%zu\n ", scopes[j-1].pattern, path[s-i], scopes[j-1].mask, path[s-i] & scopes[j-1].mask, i, j);
 
 			if(scopes[j-1].pattern  == (path[s-i].pattern & scopes[j-1].mask))
 			{
