@@ -1,21 +1,16 @@
-#ifndef PARSER_TYPES_H_C8O3OEFQ
-#define PARSER_TYPES_H_C8O3OEFQ
+#ifndef COMPRESSED_H_N3X9XQ2B
+#define COMPRESSED_H_N3X9XQ2B
 
 #include <oak/debug.h>
 
 namespace scope
 {
-	struct scope_t;
 	namespace compile
 	{
 		struct analyze_t;
 	}
+
 	namespace compressed
-	{
-		struct any_t;
-		typedef std::tr1::shared_ptr<any_t> any_ptr;
-	}
-	namespace types
 	{
 		struct path_t;
 
@@ -23,25 +18,19 @@ namespace scope
 		{
 			virtual ~any_t () { }
 			virtual bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const = 0;
-			virtual void build (compile::analyze_t& root, bool negate) const = 0;
-			virtual compressed::any_ptr generate (const compile::analyze_t& root) const = 0;
-			virtual std::string to_s () const = 0;
 		};
 
 		typedef std::tr1::shared_ptr<any_t> any_ptr;
 
-		typedef std::string atom_t;
-		extern atom_t const atom_any;
-
 		struct scope_t
 		{
-			scope_t () : anchor_to_previous(false) { }
-			std::vector<atom_t> atoms;
-			bool anchor_to_previous;
+			scope_t () : anchor_to_next(false) { }
+			scope_t (int data, int mask, int number, bool anchor_to_next) : data(data), mask(mask), number(number), anchor_to_next(anchor_to_next) { }
 
-			bool operator== (scope_t const& rhs) const { return atoms == rhs.atoms; }
-			bool operator!= (scope_t const& rhs) const { return atoms != rhs.atoms; }
-			bool operator< (scope_t const& rhs) const  { return atoms < rhs.atoms; }
+			int data;
+			int mask;
+			int number;
+			bool anchor_to_next;
 		};
 
 		struct path_t : any_t
@@ -54,12 +43,6 @@ namespace scope
 			bool anchor_to_eol;
 
 			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
-			void build (compile::analyze_t& root, bool negate) const;
-			compressed::any_ptr generate (const compile::analyze_t& root) const;
-			bool operator== (path_t const& rhs) const { return scopes == rhs.scopes; }
-			bool operator!= (path_t const& rhs) const { return scopes != rhs.scopes; }
-			bool operator< (path_t const& rhs) const  { return scopes < rhs.scopes; }
-			std::string to_s () const;
 		};
 
 		struct expression_t
@@ -95,9 +78,6 @@ namespace scope
 			selector_t selector;
 
 			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
-			void build (compile::analyze_t& root, bool negate) const;
-			compressed::any_ptr generate (const compile::analyze_t& root) const;
-			std::string to_s () const;
 		};
 
 		struct filter_t : any_t
@@ -109,17 +89,10 @@ namespace scope
 			any_ptr selector;
 
 			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
-			void build (compile::analyze_t& root, bool negate) const;
-			compressed::any_ptr generate (const compile::analyze_t& root) const;
-			std::string to_s () const;
 		};
-
-		std::string to_s (scope_t const& scope);
-		std::string to_s (path_t const& path);
-		std::string to_s (selector_t const& selector);
 
 	} /* types */
 
 } /* scope */
 
-#endif /* end of include guard: PARSER_TYPES_H_2G9KD2WM */
+#endif /* end of include guard: COMPRESSED_H_N3X9XQ2B */
