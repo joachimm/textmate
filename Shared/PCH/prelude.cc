@@ -33,6 +33,7 @@
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
+#include <boost/iterator/transform_iterator.hpp>
 
 namespace ext = __gnu_cxx;
 
