@@ -3,6 +3,7 @@
 
 #include <bundles/bundles.h>
 #include <scope/scope.h>
+#include <scope/compile.h>
 #include <cf/color.h>
 
 typedef std::tr1::shared_ptr<struct __CTFont const> CTFontPtr;
@@ -90,6 +91,8 @@ public:
 	bundles::item_ptr _item;
 	std::vector<decomposed_style_t> _styles;
 	callback_t _callback;
+
+	scope::compile::compiled_t<decomposed_style_t> compiled;
 
 	typedef boost::tuple<scope::context_t, std::string, CGFloat> key_t; // scope, font name, font size
 	mutable std::map<key_t, styles_t> _cache;

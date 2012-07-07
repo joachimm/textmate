@@ -177,6 +177,12 @@ void theme_t::setup_styles ()
 			}
 		}
 	}
+
+	citerate(it, global_styles(scope::wildcard))
+		_styles.push_back(*it);
+	
+	compiled = scope::compile::compile(_styles);
+
 }
 
 oak::uuid_t const& theme_t::uuid () const
@@ -192,24 +198,9 @@ styles_t const& theme_t::styles_for_scope (scope::context_t const& scope, std::s
 	std::map<key_t, styles_t>::iterator styles = _cache.find(key_t(scope, fontName, fontSize));
 	if(styles == _cache.end())
 	{
-		std::multimap<double, decomposed_style_t> ordering;
-		citerate(it, global_styles(scope))
-		{
-			double rank = 0;
-			if(it->scope_selector.does_match(scope, &rank))
-				ordering.insert(std::make_pair(rank, *it));
-		}
 
-		iterate(it, _styles)
-		{
-			double rank = 0;
-			if(it->scope_selector.does_match(scope, &rank))
-				ordering.insert(std::make_pair(rank, *it));
-		}
-
-		decomposed_style_t base(scope::selector_t(), fontName, fontSize);
-		iterate(it, ordering)
-			base += it->second;
+		std::multimap<double, const theme_t::decomposed_style_t&> ordered;
+		decomposed_style_t base = compiled.styles_for_scope(scope, fontName, fontSize);
 
 		CTFontPtr font(CTFontCreateWithName(cf::wrap(base.font_name), round(base.absolute_font_size), NULL), CFRelease);
 		if(CTFontSymbolicTraits traits = (base.bold == bool_true ? kCTFontBoldTrait : 0) + (base.italic == bool_true ? kCTFontItalicTrait : 0))
