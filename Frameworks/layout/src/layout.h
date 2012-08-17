@@ -27,7 +27,7 @@ namespace ng
 		layout_t (ng::buffer_t& buffer, theme_ptr const& theme, std::string const& fontName = "Menlo", CGFloat fontSize = 12, bool softWrap = false, size_t wrapColumn = 0, std::string const& folded = NULL_STR, margin_t const& margin = margin_t(8));
 		~layout_t ();
 
-		// _buffer_callback is managed with new/delete so can’t be copied
+		// _buffer_callback/_bundles_callback is managed with new/delete so can’t be copied
 		layout_t (layout_t const& rhs) = delete;
 		layout_t& operator= (layout_t const& rhs) = delete;
 
@@ -150,6 +150,7 @@ namespace ng
 		void refresh_line_at_index (size_t index, bool fullRefresh);
 		void did_fold (size_t from, size_t to);
 
+		void clear_bundle_cache();
 		static int row_y_comp (CGFloat y, row_key_t const& offset, row_key_t const& node)       { return y < offset._height ? -1 : (y == offset._height ? 0 : +1); }
 		static int row_offset_comp (size_t i, row_key_t const& offset, row_key_t const& node)   { return i < offset._length ? -1 : (i == offset._length ? 0 : +1); }
 
@@ -160,7 +161,7 @@ namespace ng
 
 		ng::buffer_t&      _buffer;
 		ng::callback_t*    _buffer_callback;
-
+		bundles::callback_t* _bundles_callback;
 		theme_ptr          _theme;
 		std::string        _font_name;
 		CGFloat            _font_size;
@@ -185,6 +186,9 @@ namespace ng
 		std::vector<CGRect> _pre_refresh_highlight_interior;
 		std::vector<CGRect> _dirty_rects;
 		size_t _refresh_counter = 0;
+		
+		mutable std::map<scope::context_t, bool> _bundle_cache;
+		
 	};
 
 } /* ng */

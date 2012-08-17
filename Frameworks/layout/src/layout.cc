@@ -46,6 +46,13 @@ namespace ng
 			layout_t& layout;
 		};
 
+		struct bundles_callback_t : bundles::callback_t
+		{
+			bundles_callback_t (layout_t& layout) : layout(layout) { }
+			void bundles_did_change ()                  { layout.clear_bundle_cache(); }
+		private:
+			layout_t& layout;
+		};
 		setup_font_metrics();
 
 		_rows.insert(_rows.end(), row_key_t(0, default_line_height()));
@@ -54,12 +61,15 @@ namespace ng
 
 		_buffer_callback = new parser_callback_t(*this);
 		_buffer.add_callback(_buffer_callback);
+		
+		_bundles_callback = new bundles_callback_t(*this);
 	}
 
 	layout_t::~layout_t ()
 	{
 		_buffer.remove_callback(_buffer_callback);
 		delete _buffer_callback;
+		delete _bundles_callback;
 	}
 
 	void layout_t::setup_font_metrics ()
@@ -234,8 +244,13 @@ namespace ng
 	{
 		bundles::item_ptr softWrapItem;
 		scope::context_t scope(_buffer.scope(rowIter->offset._length, false).right, _buffer.scope(rowIter->offset._length + rowIter->key._length, false).left);
-		plist::any_t const& softWrapValue = bundles::value_for_setting("softWrap", scope, &softWrapItem);
-		return softWrapItem ? plist::is_true(softWrapValue) : _wrapping;
+		auto soft_wrapped = _bundle_cache.find(scope);
+		if(soft_wrapped == _bundle_cache.end())
+		{
+			plist::any_t const& softWrapValue = bundles::value_for_setting("softWrap", scope, &softWrapItem);
+			soft_wrapped = _bundle_cache.insert(std::make_pair(scope, softWrapItem ? plist::is_true(softWrapValue) : _wrapping)).first;
+		}
+		return soft_wrapped->second;
 	}
 
 	size_t layout_t::effective_wrap_column () const
@@ -872,5 +887,11 @@ namespace ng
 		Buffer = _buffer.substr(0, _buffer.size());
 		return _rows.to_s(&row_to_s);
 	}
+	
+	void layout_t::clear_bundle_cache()
+	{
+		_bundle_cache.clear();
+	}
+	
 
 } /* ng */
