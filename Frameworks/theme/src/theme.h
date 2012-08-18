@@ -58,7 +58,7 @@ public:
 	{
 		decomposed_style_t (scope::selector_t const& scopeSelector = scope::selector_t(), std::string const& fontName = NULL_STR, CGFloat fontSize = 0) : scope_selector(scopeSelector), font_name(fontName), bold(bool_unset), italic(bool_unset), underlined(bool_unset), misspelled(bool_unset), absolute_font_size(fontSize) { }
 		decomposed_style_t& operator+= (decomposed_style_t const& rhs);
-		std::string to_s() const;
+
 		scope::selector_t scope_selector;
 
 		std::string font_name;
@@ -71,7 +71,7 @@ public:
 		bool_t italic;
 		bool_t underlined;
 		bool_t misspelled;
-		
+
 		CGFloat absolute_font_size;
 	};
 
@@ -96,6 +96,22 @@ public:
 
 	typedef boost::tuple<scope::context_t, std::string, CGFloat> key_t; // scope, font name, font size
 	mutable std::map<key_t, styles_t> _cache;
+public:
+	struct test_hook_t
+	{
+		test_hook_t(scope::compile::compiled_t<decomposed_style_t> compiled) : compiled(compiled) {}
+		scope::compile::compiled_t<decomposed_style_t> compiled;
+		static test_hook_t get_hook(theme_t const& theme)
+		{
+			return test_hook_t(scope::compile::compile(theme._styles));
+		}
+		
+		decomposed_style_t styles_for_scope (scope::context_t const& scope, std::string fontName, CGFloat fontSize) const
+		{
+			decomposed_style_t style(scope::selector_t(), fontName, fontSize);
+			return compiled.styles_for_scope(scope, style);
+		}
+	};
 };
 
 typedef std::tr1::shared_ptr<theme_t> theme_ptr;
