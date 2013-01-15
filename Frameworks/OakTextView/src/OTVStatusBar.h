@@ -16,6 +16,7 @@
 @property (nonatomic, assign) BOOL isMacroRecording;
 @property (nonatomic, assign) BOOL softTabs;
 @property (nonatomic, assign) int32_t tabSize;
+@property (nonatomic, assign) BOOL showSplitViewCloseButton;
 
 @property (nonatomic, assign) id <OTVStatusBarDelegate> delegate;
 @end

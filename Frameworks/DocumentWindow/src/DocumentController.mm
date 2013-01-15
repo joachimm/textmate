@@ -1,5 +1,6 @@
 #import "DocumentController.h"
 #import "ProjectLayoutView.h"
+#import "DocumentContainer.h"
 #import "DocumentOpenHelper.h"
 #import "DocumentSaveHelper.h"
 #import "DocumentCommand.h" // show_command_error
@@ -53,7 +54,7 @@ static BOOL IsInShouldTerminateEventLoop = NO;
 @interface DocumentController () <NSWindowDelegate, OakTabBarViewDelegate, OakTabBarViewDataSource, OakTextViewDelegate, OakFileBrowserDelegate, QLPreviewPanelDelegate, QLPreviewPanelDataSource>
 @property (nonatomic) ProjectLayoutView*          layoutView;
 @property (nonatomic) OakTabBarView*              tabBarView;
-@property (nonatomic) OakDocumentView*            documentView;
+@property (nonatomic) DocumentContainer*          documentView;
 @property (nonatomic) OakTextView*                textView;
 @property (nonatomic) OakFileBrowser*             fileBrowser;
 
@@ -243,7 +244,7 @@ namespace
 		self.tabBarView.dataSource = self;
 		self.tabBarView.delegate   = self;
 
-		self.documentView = [[OakDocumentView alloc] init];
+		self.documentView = [[DocumentContainer alloc] init];
 		self.textView = self.documentView.textView;
 		self.textView.delegate = self;
 

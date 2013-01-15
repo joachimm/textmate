@@ -25,6 +25,11 @@ enum folding_state_t { kFoldingNone, kFoldingTop, kFoldingCollapsed, kFoldingBot
 - (NSString*)scopeAttributes;
 @end
 
+@protocol OakExtensionDelegate <NSObject>
+- (void)contextMenu:(NSMenu*)menu forView:(OakTextView*)textView;
+- (ng::editor_ptr)editor:(id)sender;
+@end
+
 PUBLIC @interface OakTextView : OakView <NSTextInput, NSTextFieldDelegate>
 {
 	document::document_ptr document;
@@ -96,6 +101,7 @@ PUBLIC @interface OakTextView : OakView <NSTextInput, NSTextFieldDelegate>
 - (void)setDocument:(document::document_ptr const&)aDocument;
 
 @property (nonatomic, assign) id <OakTextViewDelegate>      delegate;
+@property (nonatomic, assign) id <OakExtensionDelegate>     extensionDelegate;
 @property (nonatomic, assign) theme_ptr const&              theme;
 @property (nonatomic, retain) NSCursor*                     ibeamCursor;
 @property (nonatomic, retain) NSFont*                       font;

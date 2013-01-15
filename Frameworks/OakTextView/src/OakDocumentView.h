@@ -40,4 +40,7 @@ PUBLIC @interface OakDocumentView : NSView <GutterViewDelegate, GutterViewColumn
 - (void)removeAuxiliaryView:(NSView*)aView;
 
 - (IBAction)showSymbolChooser:(id)sender;
+- (BOOL)showSplitViewCloseButton;
+- (void)setShowSplitViewCloseButton:(BOOL)show;
+- (void)closeDocumentSplit:(id)sender;
 @end

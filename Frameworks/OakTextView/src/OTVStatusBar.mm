@@ -26,6 +26,7 @@ const NSInteger BundleItemSelector = 1;
 @implementation OTVStatusBar
 @synthesize recordingTimer, pulsedRecordingIndicator, grammarName, symbolName, isMacroRecording, tabSize, softTabs;
 @synthesize delegate;
+@synthesize showSplitViewCloseButton;
 
 - (void)update
 {
@@ -38,6 +39,7 @@ const NSInteger BundleItemSelector = 1;
 
 	struct sb::cell_t const cellList[] =
 	{
+		self.showSplitViewCloseButton ? sb::cell_t::button(" x", @selector(closeDocumentSplit:),self.delegate ).no_padding().size(15)  : sb::cell_t::info(),
 		sb::cell_t::info(lineNumberText),
 		sb::cell_t::popup([grammarName UTF8String] ?: "-",     @selector(showLanguageSelector:),    self.delegate).set_image(languageIcon).size(110),
 		sb::cell_t::popup(gearImage,                           @selector(showBundleItemSelector:),  self.delegate).set_tag(BundleItemSelector),
@@ -71,6 +73,13 @@ const NSInteger BundleItemSelector = 1;
 {
 	[grammarName release];
 	grammarName = [newGrammarName copy];
+	[self update];
+}
+
+- (void)setShowSplitViewCloseButton:(BOOL)flag
+{
+	NSLog(@"showSplitViewCloseButton");
+	showSplitViewCloseButton = flag;
 	[self update];
 }
 

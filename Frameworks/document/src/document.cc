@@ -1189,6 +1189,37 @@ namespace document
 		return v.empty() ? NULL_STR : "( " + text::join(v, ", ") + " )";
 	}
 
+	// =============
+	// = Splitview =
+	// =============
+
+	document_t::splitview_t document_t::create_splitview_after (document_t::splitview_t splitview, std::string visible_rect, size_t height) 
+	{
+		auto position = std::find(_splitviews.begin(), _splitviews.end(), splitview);
+		splitview_t new_splitview(++_splitview_token, visible_rect, height);
+		_splitviews.insert(position + 1, new_splitview);
+		return new_splitview;
+	}
+
+	document_t::splitview_t document_t::remove_splitview (document_t::splitview_t splitview, bool after) {
+		auto position = std::find(_splitviews.begin(), _splitviews.end(), splitview);
+		if(position != _splitviews.end() && (position = position + (after?1:0)) != _splitviews.end())
+		{
+			splitview_t res = *position;
+			_splitviews.erase(position);
+			return res;
+		}
+		return splitview_t();
+	}
+
+	void document_t::update_splitview (document_t::splitview_t splitview) {
+		std::vector<document_t::splitview_t>::iterator it = std::find(_splitviews.begin(), _splitviews.end(), splitview);
+		if(it == _splitviews.end())
+			return;
+		size_t position = it - _splitviews.begin();
+		_splitviews.at(position)=splitview;
+	}
+
 	// ===========
 	// = Symbols =
 	// ===========

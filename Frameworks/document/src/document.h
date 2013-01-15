@@ -50,7 +50,7 @@ namespace document
 	{
 		WATCH_LEAKS(document_t);
 
-		document_t () : _did_load_marks(false), _selection(NULL_STR), _folded(NULL_STR), _visible_rect(NULL_STR), _disable_callbacks(false), _revision(0), _disk_revision(0), _modified(false), _path(NULL_STR), _open_count(0), _has_lru(false), _is_on_disk(false), _recent_tracking(true), _backup_path(NULL_STR), _backup_revision(0), _virtual_path(NULL_STR), _custom_name(NULL_STR), _untitled_count(0), _grammar_callback(*this), _file_type(NULL_STR), _path_attributes(NULL_STR), /*_folder(NULL_STR),*/ _disk_encoding(NULL_STR), _disk_newlines(NULL_STR), _disk_bom(false) { }
+		document_t () : _did_load_marks(false), _selection(NULL_STR), _folded(NULL_STR), _visible_rect(NULL_STR), _disable_callbacks(false), _splitview_token(0), _splitviews(1, splitview_t(_splitview_token, _visible_rect, 0)), _revision(0), _disk_revision(0), _modified(false), _path(NULL_STR), _open_count(0), _has_lru(false), _is_on_disk(false), _recent_tracking(true), _backup_path(NULL_STR), _backup_revision(0), _virtual_path(NULL_STR), _custom_name(NULL_STR), _untitled_count(0), _grammar_callback(*this), _file_type(NULL_STR), _path_attributes(NULL_STR), /*_folder(NULL_STR),*/ _disk_encoding(NULL_STR), _disk_newlines(NULL_STR), _disk_bom(false) { }
 		~document_t ();
 
 		bool operator== (document_t const& rhs) const { return _identifier == rhs._identifier; }
@@ -238,6 +238,34 @@ namespace document
 
 		ng::undo_manager_t& undo_manager ()               { ASSERT(_undo_manager); return *_undo_manager; }
 		ng::undo_manager_t const& undo_manager () const   { ASSERT(_undo_manager); return *_undo_manager; }
+
+		// ==============
+		// = Splitviews =
+		// ==============
+		struct splitview_t
+		{
+			WATCH_LEAKS(document_t::splitview_t);
+		
+			splitview_t (size_t identifier = -1, std::string visible_rect = "", size_t height = 0) : height(height), _identifier(identifier), _visible_rect(visible_rect){ }
+			size_t identifier() const{ return _identifier;}
+			bool operator== (splitview_t const& rhs) const { return _identifier == rhs._identifier; }
+			bool operator!= (splitview_t const& rhs) const { return _identifier != rhs._identifier; }
+			bool operator< (splitview_t const& rhs) const { return _identifier < rhs._identifier; }
+
+			std::string visible_rect () const              { return _visible_rect; }
+			void set_visible_rect (std::string const& rect) { _visible_rect = rect; }
+			size_t height;
+		private:
+			size_t _identifier;
+			std::string _visible_rect;
+		};
+
+		size_t _splitview_token;
+		std::vector<splitview_t> _splitviews;
+		std::vector<splitview_t> const& splitviews() const { return _splitviews;};
+		splitview_t create_splitview_after (document_t::splitview_t splitview, std::string visible_rect, size_t height);
+		splitview_t remove_splitview (document_t::splitview_t splitview, bool after = false);
+		void update_splitview (document_t::splitview_t splitview);
 
 		// =============
 		// = Accessors =

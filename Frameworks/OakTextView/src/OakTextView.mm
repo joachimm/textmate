@@ -409,7 +409,11 @@ static std::string shell_quote (std::vector<std::string> paths)
 	{
 		settings_t const& settings = document->settings();
 
-		editor = ng::editor_for_document(document);
+		if(self.extensionDelegate)
+			editor = [self.extensionDelegate editor:self];
+		else
+			editor = ng::editor_for_document(document);
+
 		wrapColumn = settings.get(kSettingsWrapColumnKey, wrapColumn);
 		layout.reset(new ng::layout_t(document->buffer(), theme, settings.get(kSettingsSoftWrapKey, false), wrapColumn, document->folded()));
 		if(settings.get(kSettingsShowWrapColumnKey, false))
@@ -1537,6 +1541,8 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 				[menu addItemWithTitle:items[i].title action:items[i].action keyEquivalent:@""];
 		else	[menu addItem:[NSMenuItem separatorItem]];
 	}
+
+	[self.extensionDelegate contextMenu:menu forView:self];
 	return menu;
 }
 

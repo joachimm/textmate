@@ -865,4 +865,24 @@ static std::string const kBookmarkType = "bookmark";
 	document->buffer().remove_all_marks(kBookmarkType);
 	[[NSNotificationCenter defaultCenter] postNotificationName:GVColumnDataSourceDidChange object:self];
 }
+
+- (BOOL)showSplitViewCloseButton
+{ 
+	return statusBar.showSplitViewCloseButton;
+}
+
+- (void)setShowSplitViewCloseButton:(BOOL)show
+{
+	statusBar.showSplitViewCloseButton = show;
+}
+
+- (void)closeDocumentSplit:(id)sender
+{
+	if([sender isKindOfClass:[OTVStatusBar class]])
+		[self.superview performSelector:@selector(closeDocumentSplit:) withObject:self ];
+	else
+		[self.superview performSelector:@selector(closeDocumentSplit:) withObject:sender];
+		
+}
+
 @end
