@@ -53,7 +53,7 @@ void compute_hashes (scope::compile::interim_t& root, std::map<int,int>& bits_ne
 	}
 }
 
-void scope::compile::interim_t::calculate_bit_fields()
+int scope::compile::interim_t::calculate_bit_fields()
 {
 	// räkna ut barn per nivå.
 	// räkna ut antal bitar som behövs
@@ -63,10 +63,11 @@ void scope::compile::interim_t::calculate_bit_fields()
 	std::map<int, int> bits_needed_for_level;
 	compute_hash_sizes(*this, bits_needed_for_level, 0);
 	// TODO assert that the hash is big enough to contain all the bits
-	//const int sum = std::accumulate(bits_needed_for_level.begin(), bits_needed_for_level.end(), 0, map_acc);
+	int sum = std::accumulate(bits_needed_for_level.begin(), bits_needed_for_level.end(), 0, map_acc);
 	hash = 0;
 	mask = 0;
 	compute_hashes(*this, bits_needed_for_level);
+	return sum;
 }
 
 bool scope::compile::interim_t::has_any()

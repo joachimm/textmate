@@ -1,5 +1,5 @@
-#include "compile.h"
 #include "types.h"
+#include "compile.h"
 
 // Addition trick: use one bit for each "path" + 1 for _overflow_
 // investigate op

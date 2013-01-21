@@ -8,16 +8,17 @@ namespace scope
 	namespace compile
 	{
 		struct analyze_t;
+		struct simple_path_t;
 	}
 
 	namespace compressed
 	{
 		struct path_t;
-
+		
 		struct any_t
 		{
 			virtual ~any_t () { }
-			virtual bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const = 0;
+			virtual bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const = 0;
 		};
 
 		typedef std::shared_ptr<any_t> any_ptr;
@@ -35,7 +36,6 @@ namespace scope
 			bool operator== (scope_t const& rhs) const { return data == rhs.data && number == rhs.number; }
 			bool operator!= (scope_t const& rhs) const { return !(*this == rhs); }
 			bool operator< (scope_t const& rhs) const  { return data < rhs.data || data == rhs.data && number < rhs.number; }
-			
 		};
 
 		struct path_t : any_t
@@ -47,7 +47,7 @@ namespace scope
 			bool anchor_to_bol;
 			bool anchor_to_eol;
 
-			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
+			bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const;
 		};
 
 		struct expression_t
@@ -57,14 +57,14 @@ namespace scope
 			bool negate;
 			any_ptr selector;
 
-			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
+			bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const;
 		};
 
 		struct composite_t
 		{
 			std::vector<expression_t> expressions;
 
-			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
+			bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const;
 		};
 
 		struct selector_t
@@ -73,7 +73,7 @@ namespace scope
 
 			std::vector<composite_t> composites;
 
-			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
+			bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const;
 		};
 
 		struct group_t : any_t
@@ -82,7 +82,7 @@ namespace scope
 
 			selector_t selector;
 
-			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
+			bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const;
 		};
 
 		struct filter_t : any_t
@@ -93,7 +93,7 @@ namespace scope
 			enum side_t { unset, left = 'L', right = 'R', both = 'B' } filter;
 			any_ptr selector;
 
-			bool does_match (path_t const& lhs, path_t const& rhs, double* rank) const;
+			bool does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const;
 		};
 
 	} /* types */

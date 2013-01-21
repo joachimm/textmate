@@ -1,4 +1,5 @@
 #include "compressed.h"
+#include "compile.h"
 #include "parse.h"
 #include "scope.h"
 #include <oak/oak.h>
@@ -17,11 +18,11 @@ namespace scope
 {
 	namespace compressed
 	{
-		bool path_t::does_match (path_t const& lhs, path_t const& path, double* rank) const
+		bool path_t::does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& path, double* rank) const
 		{
 			ENTER;
 
-			size_t i = path.scopes.size(); // “source.ruby string.quoted.double constant.character”
+			size_t i = path.size(); // “source.ruby string.quoted.double constant.character”
 			size_t j = scopes.size();      // “string > constant $”
 			const size_t size_i = i;
 			const size_t size_j = j;
@@ -51,10 +52,10 @@ namespace scope
 					reset_i = i;
 					reset_j = j;
 				}
-
-				power += path.scopes[size_i-i].number;//route_length(path[size_i-i]);
+				compile::simple_path_t::scope_t const& res = path.at(size_i -i);
+				power += res.length; // path.scopes[size_i-i].number;//route_length(path[size_i-i]);
 				
-				if(scopes[j-1].data  == (path.scopes[size_i-i].data & scopes[j-1].mask))
+				if(scopes[j-1].data  == res.trail & scopes[j-1].mask)
 				{
 				
 					for(size_t k = 0; k < scopes[j-1].number; ++k)
@@ -93,7 +94,7 @@ namespace scope
 			return j == 0;
 		}
 
-		bool composite_t::does_match (path_t const& lhs, path_t const& rhs, double* rank) const
+		bool composite_t::does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const
 		{
 			ENTER;
 			bool res = false;
@@ -151,7 +152,7 @@ namespace scope
 			return res;
 		}
 
-		bool selector_t::does_match (path_t const& lhs, path_t const& rhs, double* rank) const
+		bool selector_t::does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const
 		{
 			ENTER;
 			if(rank)
@@ -179,13 +180,13 @@ namespace scope
 			return false;
 		}
 
-		bool group_t::does_match (path_t const& lhs, path_t const& rhs, double* rank) const
+		bool group_t::does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const
 		{
 			ENTER;
 			return selector.does_match(lhs, rhs, rank);
 		}
 
-		bool filter_t::does_match (path_t const& lhs, path_t const& rhs, double* rank) const
+		bool filter_t::does_match (compile::simple_path_t const& lhs, compile::simple_path_t const& rhs, double* rank) const
 		{
 			ENTER;
 			if(filter == both && rank)

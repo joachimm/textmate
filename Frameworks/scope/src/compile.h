@@ -2,7 +2,7 @@
 #define COMPILE_H_5XWUY4P8
 #include <oak/oak.h>
 #include "scope.h"
-
+#include "bits_vector.h"
 namespace scope
 {
 	namespace types
@@ -30,7 +30,7 @@ namespace scope
 			bool needs_right;
 
 			void expand_wildcards();
-			void calculate_bit_fields ();
+			int calculate_bit_fields ();
 			bool has_any ();
 			std::string to_s (int indent=0) const;
 		};
@@ -65,6 +65,30 @@ namespace scope
 			int rule_id;
 		};
 
+		struct PUBLIC simple_path_t
+		{
+			struct scope_t
+			{
+				unsigned int trail;
+				size_t length;
+			};
+			mutable scope_t res;
+			size_t size_len;
+			bits_vector container;
+			bits_vector::bits_t mask;
+			size_t size () const { return container.size(); }
+			simple_path_t (int path_len, int size_len = 6) : size_len(size_len), container(path_len+size_len), mask((1<<size_len) -1 ) { }
+			void add (bits_vector::bits_t trail, int _size) { return container.add((trail << size_len) | _size); }
+			void prepare (size_t size) { container.reserve(size); }
+			scope_t const& at (size_t index) const
+			{ 
+				bits_vector::bits_t bits = container.at(index);
+				res.trail = bits >> size_len;
+				res.length = bits | mask;
+				return res;
+			}
+		};
+
 		typedef unsigned long long bits_t;
 
 		class compressor_t;
@@ -75,8 +99,8 @@ namespace scope
 			{
 				size_t sz;
 				typedef std::pair<std::string, compressor_unique_ptr> result_type;
-				converter(size_t sz):sz(sz) {}
-				result_type operator()(std::pair<std::string, interim_unique_ptr const&> const& pair) const
+				converter (size_t sz):sz(sz) {}
+				result_type operator() (std::pair<std::string, interim_unique_ptr const&> const& pair) const
 				{ 
 					return std::make_pair(std::move(pair.first), compressor_unique_ptr(new compressor_t(*pair.second, sz)));
 				}
@@ -97,7 +121,7 @@ namespace scope
 			compressor_t (interim_t const& analyze, size_t sz);
 			compressor_t (){}
 			compressor_t (compressor_t&& rhs) = default;
-			compressor_t& operator=(compressor_t&& rhs) = default;
+			compressor_t& operator= (compressor_t&& rhs) = default;
 		};
 		
 		class PUBLIC compiler_factory_t
@@ -117,7 +141,7 @@ namespace scope
 			interim_t& interim () { return root;}
 			interim_t& right_interim () { return right_root;}
 			std::vector<sub_rule_t> expressions () { return _expressions; }
-			void calculate_bit_fields () { root.calculate_bit_fields();}
+			int calculate_bit_fields () { return root.calculate_bit_fields();}
 			std::string to_s () { return root.to_s(); }
 			
 		private:
@@ -129,10 +153,14 @@ namespace scope
 			std::vector<sub_rule_t> expressions;
 			size_t blocks_needed;
 			mutable std::vector<scope::compile::bits_t> palette;
+			mutable simple_path_t left, right;
 		public:
-			matcher_t () {}
-			matcher_t (std::vector<sub_rule_t> expressions, size_t blocks_needed): expressions(expressions), blocks_needed(blocks_needed), palette(blocks_needed) {}
-			scope::compressed::path_t lookup (scope::types::path_ptr const& scope, const scope::compile::compressor_t& compressor, std::vector<scope::compile::bits_t>& palette, std::map<int, double>& ruleToRank, bool& needs_right) const;
+			matcher_t ():left(0),right(0) {}
+			matcher_t& operator= (matcher_t&& rhs) = default;
+			matcher_t (matcher_t&& matcher) = default;
+			matcher_t (std::vector<sub_rule_t> expressions, size_t blocks_needed, int sum);
+
+			void lookup (simple_path_t& populate, scope::types::path_ptr const& scope, const scope::compile::compressor_t& compressor, std::vector<scope::compile::bits_t>& palette, std::map<int, double>& ruleToRank, bool& needs_right) const;
 			std::map<int, double> match (context_t const& scope, compressor_t const& compressor, compressor_t const& r_compressor) const;
 		};
 
@@ -144,9 +172,9 @@ namespace scope
 			matcher_t matcher;
 			std::vector<T> rules;
 		public:
-			compiled_t<T>& operator=(compiled_t<T>&& rhs) = default;
-			compiled_t(compiled_t<T>&& rhs) : l_compressor(std::move(rhs.l_compressor)), r_compressor(std::move(rhs.r_compressor)), matcher(rhs.matcher), rules(std::move(rhs.rules)) {}
-			compiled_t (const interim_t& interim, const interim_t& r_interim, std::vector<T> const& rules, const std::vector<sub_rule_t>& expressions, size_t blocks_needed): l_compressor(interim, blocks_needed), r_compressor(r_interim, blocks_needed), matcher(expressions, blocks_needed), rules(rules) 
+			compiled_t<T>& operator= (compiled_t<T>&& rhs) = default;
+			compiled_t(compiled_t<T>&& rhs) : l_compressor(std::move(rhs.l_compressor)), r_compressor(std::move(rhs.r_compressor)), matcher(std::move(rhs.matcher)), rules(std::move(rhs.rules)) {}
+			compiled_t (const interim_t& interim, const interim_t& r_interim, std::vector<T> const& rules, const std::vector<sub_rule_t>& expressions, size_t blocks_needed, int sum): l_compressor(interim, blocks_needed), r_compressor(r_interim, blocks_needed), matcher(expressions, blocks_needed, sum), rules(rules) 
 				{}
 			compiled_t() {}
 
@@ -176,7 +204,7 @@ namespace scope
 			// add *.<path_name> to all paths
 			compiler.expand_wildcards();
 			// populate bit fields
-			compiler.calculate_bit_fields();
+			int sum = compiler.calculate_bit_fields();
 
 			// break out all selectors into its compressed composites
 			iterate(r_id, compiler.sub_rule_mappings())
@@ -189,7 +217,7 @@ namespace scope
 			//printf("root:\n");
 			//printf("%s\n", compiler.to_s().c_str());
 			size_t sz = sizeof(bits_t)*CHAR_BIT;
-			return compiled_t<T>(compiler.interim(), compiler.right_interim(), rules, compiler.expressions(), sub_rule_id/sz + (sub_rule_id%sz > 0 ? 1 :0));
+			return compiled_t<T>(compiler.interim(), compiler.right_interim(), rules, compiler.expressions(), sub_rule_id/sz + (sub_rule_id%sz > 0 ? 1 :0), sum);
 		}
 	}
 }
