@@ -376,9 +376,9 @@ static std::string shell_quote (std::vector<std::string> paths)
 {
 	if(document && aDocument && *document == *aDocument)
 	{
-		if(document->selection() != NULL_STR)
+		if([self.extensionDelegate selection:self] != NULL_STR)
 		{
-			ng::ranges_t ranges = convert(document->buffer(), document->selection());
+			ng::ranges_t ranges = convert(document->buffer(), [self.extensionDelegate selection:self]);
 			editor->set_selections(ranges);
 			iterate(range, ranges)
 				layout->remove_enclosing_folds(range->min().index, range->max().index);
@@ -429,9 +429,9 @@ static std::string shell_quote (std::vector<std::string> paths)
 		editor->set_replace_clipboard(get_clipboard(NSReplacePboard));
 
 		std::string const visibleRect = document->visible_rect();
-		if(document->selection() != NULL_STR)
+		if([self.extensionDelegate selection:self] != NULL_STR)
 		{
-			ng::ranges_t ranges = convert(document->buffer(), document->selection());
+			ng::ranges_t ranges = convert(document->buffer(), [self.extensionDelegate selection:self]);
 			editor->set_selections(ranges);
 			iterate(range, ranges)
 				layout->remove_enclosing_folds(range->min().index, range->max().index);
@@ -2187,7 +2187,7 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 		to.offset   = range->last.carry;
 		ranges.push_back(text::range_t(from, to, range->columnar));
 	}
-	document->set_selection(ranges);
+	[self.extensionDelegate textView:self setSelection:ranges];
 
 	isUpdatingSelection = YES;
 	[self setSelectionString:[NSString stringWithCxxString:ranges]];

@@ -558,7 +558,7 @@ struct socket_observer_t
 				doc->set_custom_name(args["display-name"]);
 
 			if(!args["selection"].empty())
-				doc->set_selection(args["selection"]);
+				doc->splitviews().front().set_selection(args["selection"]);
 
 			if(args["add-to-recents"] != "yes")
 				doc->set_recent_tracking(false);

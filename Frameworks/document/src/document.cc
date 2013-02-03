@@ -561,6 +561,35 @@ namespace document
 		if(_file_type == NULL_STR)
 			_file_type = fileType;
 
+		size_t idx = 0;
+		while(true)
+		{
+			auto itr = attributes.find("com.macromates.selectionRange."+text::format("%zd", idx));
+			if(splitviews().size() <=idx && itr == attributes.end())
+				break;
+			if(splitviews().size() <=idx)
+				create_splitview_after(splitviews().at(idx -1 ), NULL_STR, 0); // unless something is screwed up size > 0
+			if(splitviews().at(idx).selection() == NULL_STR)
+			{
+				splitviews().at(idx).set_selection(itr != attributes.end() ? itr->second : NULL_STR);
+			}
+			idx++;
+		}
+
+		while(true)
+		{
+			auto itr = attributes.find("com.macromates.visibleRect."+text::format("%zd", idx));
+			if(splitviews().size() <=idx && itr == attributes.end())
+				break;
+			if(splitviews().size() <=idx)
+				create_splitview_after(splitviews().at(idx -1 ), NULL_STR, 0); // unless something is screwed up size > 0
+			if(splitviews().at(idx).selection() == NULL_STR)
+			{
+				splitviews().at(idx).set_selection(itr != attributes.end() ? itr->second : NULL_STR);
+			}
+			idx++;
+		}
+		
 		if(_selection == NULL_STR)
 		{
 			std::map<std::string, std::string>::const_iterator sel  = attributes.find("com.macromates.selectionRange");
@@ -686,8 +715,11 @@ namespace document
 		std::map<std::string, std::string> attributes;
 		if(volume::settings(_path).extended_attributes())
 		{
-			attributes["com.macromates.selectionRange"] = _selection;
-			attributes["com.macromates.visibleRect"]    = _visible_rect;
+			for(size_t i = 0 ; i < splitviews().size(); i++)
+			{
+				attributes["com.macromates.selectionRange."+text::format("%zd", i)] = splitviews().at(i).selection();
+				attributes["com.macromates.visibleRect."+text::format("%zd", i)]    = splitviews().at(i).selection();
+			}
 			attributes["com.macromates.bookmarks"]      = marks_as_string();
 			attributes["com.macromates.folded"]         = _folded;
 		}
@@ -735,8 +767,11 @@ namespace document
 		{
 			path::set_attr(dst, "com.macromates.backup.path",           _path);
 			path::set_attr(dst, "com.macromates.backup.identifier",     to_s(_identifier));
-			path::set_attr(dst, "com.macromates.selectionRange",        _selection);
-			path::set_attr(dst, "com.macromates.visibleRect",           _visible_rect);
+			for(size_t i = 0 ; i < splitviews().size(); i++)
+			{
+				path::set_attr(dst, "com.macromates.selectionRange."+text::format("%zd", i), splitviews().at(i).selection());
+				path::set_attr(dst, "com.macromates.visibleRect."+text::format("%zd", i), splitviews().at(i).selection());
+			}
 			path::set_attr(dst, "com.macromates.backup.file-type",      _file_type);
 			path::set_attr(dst, "com.macromates.backup.encoding",       _disk_encoding);
 			path::set_attr(dst, "com.macromates.backup.bom",            _disk_bom ? "YES" : "NO");
@@ -866,8 +901,11 @@ namespace document
 		if(_path != NULL_STR && !is_modified() && volume::settings(_path).extended_attributes())
 		{
 			D(DBF_Document, bug("save attributes for ‘%s’\n", _path.c_str()););
-			path::set_attr(_path, "com.macromates.selectionRange", _selection);
-			path::set_attr(_path, "com.macromates.visibleRect",    _visible_rect);
+			for(size_t i = 0 ; i < splitviews().size(); i++)
+			{
+				path::set_attr(_path,"com.macromates.selectionRange."+text::format("%zd", i), splitviews().at(i).selection());
+				path::set_attr(_path,"com.macromates.visibleRect."+text::format("%zd", i), splitviews().at(i).selection());
+			}
 			path::set_attr(_path, "com.macromates.bookmarks",      marks_as_string());
 		}
 

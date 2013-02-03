@@ -101,6 +101,17 @@ typedef std::tuple<document::document_ptr, document::document_t::splitview_t> do
 		editor_itr = editors.insert(std::make_pair(document_key_t(self.document, text_split_mapping.at(textView)), ng::editor_ptr(new ng::editor_t(self.document)))).first;
 	return editor_itr->second;
 }
+
+- (std::string)selection:(OakTextView*)textView
+{
+	return std::find(self.document->splitviews().begin(), self.document->splitviews().end(), text_split_mapping.at(textView))->selection();
+}
+
+- (void)textView:(id)textView setSelection:(std::string)selection
+{
+	return std::find(self.document->splitviews().begin(), self.document->splitviews().end(), text_split_mapping.at(textView))->set_selection(selection);
+}
+
 // =============
 // = Splitview =
 // =============

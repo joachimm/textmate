@@ -28,6 +28,8 @@ enum folding_state_t { kFoldingNone, kFoldingTop, kFoldingCollapsed, kFoldingBot
 @protocol OakExtensionDelegate <NSObject>
 - (void)contextMenu:(NSMenu*)menu forView:(OakTextView*)textView;
 - (ng::editor_ptr)editor:(id)sender;
+- (std::string)selection:(id)sender;
+- (void)textView:(id)textView setSelection:(std::string)selection;
 @end
 
 PUBLIC @interface OakTextView : OakView <NSTextInput, NSTextFieldDelegate>

@@ -668,7 +668,7 @@ namespace
 		{
 			doc->set_recent_tracking(false);
 			if(range != NULL_STR)
-				doc->set_selection(range);
+				doc->splitviews().front().set_selection(range);
 			documents.push_back(doc);
 		}
 	}
@@ -2234,7 +2234,7 @@ static NSUInteger DisableSessionSavingCount = 0;
 		void show_document (oak::uuid_t const& collection, document::document_ptr document, text::range_t const& range, bool bringToFront) const
 		{
 			if(range != text::range_t::undefined)
-				document->set_selection(range);
+				document->splitviews().front().set_selection(range);
 
 			DocumentController* controller = controller_with_documents(make_vector(document), collection);
 			if(bringToFront)

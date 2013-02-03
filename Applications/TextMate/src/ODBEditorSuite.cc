@@ -163,7 +163,7 @@ bool DidHandleODBEditorEvent (AppleEvent const* event)
 				{
 					PBX_SelectionRange& sel = *(PBX_SelectionRange*)&v[0];
 					if(sel.lineNum >= 0)
-						documents.back()->set_selection(text::pos_t(sel.lineNum, 0));
+						documents.back()->splitviews().front().set_selection(text::pos_t(sel.lineNum, 0));
 				}
 			}
 

@@ -246,7 +246,7 @@ namespace document
 		{
 			WATCH_LEAKS(document_t::splitview_t);
 		
-			splitview_t (size_t identifier = -1, std::string visible_rect = "", size_t height = 0) : height(height), _identifier(identifier), _visible_rect(visible_rect){ }
+			splitview_t (size_t identifier = -1, std::string visible_rect = NULL_STR, size_t height = 0) : height(height), _identifier(identifier), _visible_rect(visible_rect), _selection(NULL_STR){ }
 			size_t identifier() const{ return _identifier;}
 			bool operator== (splitview_t const& rhs) const { return _identifier == rhs._identifier; }
 			bool operator!= (splitview_t const& rhs) const { return _identifier != rhs._identifier; }
@@ -254,15 +254,21 @@ namespace document
 
 			std::string visible_rect () const              { return _visible_rect; }
 			void set_visible_rect (std::string const& rect) { _visible_rect = rect; }
+			
+			std::string const& selection () const               { return _selection; }
+			void set_selection (std::string const& sel) { _selection = sel; }
+			
 			size_t height;
 		private:
 			size_t _identifier;
 			std::string _visible_rect;
+			std::string _selection;
 		};
 
 		size_t _splitview_token;
 		std::vector<splitview_t> _splitviews;
 		std::vector<splitview_t> const& splitviews() const { return _splitviews;};
+		std::vector<splitview_t>& splitviews() { return _splitviews;};
 		splitview_t create_splitview_after (document_t::splitview_t splitview, std::string visible_rect, size_t height);
 		splitview_t remove_splitview (document_t::splitview_t splitview, bool after = false);
 		void update_splitview (document_t::splitview_t splitview);
@@ -284,11 +290,11 @@ namespace document
 		bool is_modified () const;
 		bool is_on_disk () const                            { return is_open() ? _is_on_disk : path::exists(path());                }
 		void set_disk_revision (ssize_t rev)                { check_modified(rev, _revision);                                       }
-		std::string const& selection () const               { return _selection;                                                    }
+		//std::string const& selection () const               { return _selection;                                                    }
 		std::string const& folded () const                  { return _folded;                                                       }
 		std::string visible_rect () const                   { return _visible_rect;                                                 }
 
-		void set_selection (std::string const& sel)         { _selection = sel; _visible_rect = NULL_STR;                           }
+		//void set_selection (std::string const& sel)         { _selection = sel; _visible_rect = NULL_STR;                           }
 		void set_folded (std::string const& folded)         { _folded = folded;                                                     }
 		void set_visible_rect (std::string const& rect)     { _visible_rect = rect;                                                 }
 

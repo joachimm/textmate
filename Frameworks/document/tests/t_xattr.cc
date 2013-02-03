@@ -24,13 +24,12 @@ public:
 	{
 		test::jail_t jail;
 		jail.set_content("test.txt", "foo\nbar\nfud\n");
-		path::set_attr(jail.path("test.txt"), "com.macromates.selectionRange", "2:2&3:1");
+		path::set_attr(jail.path("test.txt"), "com.macromates.selectionRange.0", "2:2&3:1");
 
 		document::document_ptr doc = document::create(jail.path("test.txt"));
 		doc->open();
 
-		TS_ASSERT_EQUALS(doc->selection(), "2:2&3:1");
-
+		TS_ASSERT_EQUALS(doc->splitviews().at(0).selection(), "2:2&3:1");
 		// ng::ranges_t const sel = convert(doc->buffer(), doc->selection());
 		// iterate(range, sel)
 		// 	fprintf(stderr, "%zu-%zu\n", range->first.index, range->last.index);
