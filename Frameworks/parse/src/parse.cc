@@ -231,12 +231,8 @@ namespace parse
 
 	static size_t collect_children (rule_ptr const& base, char const* first, char const* last, size_t anchor, size_t i, bool firstLine, std::vector<rule_ptr> const& children, std::set<ranked_match_t>& res, std::map<size_t, regexp::match_t>& match_cache, std::set<size_t>& unique, size_t rank = 0);
 
-	static size_t collect_rule (rule_ptr const& base, char const* first, char const* last, size_t anchor, size_t i, bool firstLine, rule_ptr rule, std::set<ranked_match_t>& res, std::map<size_t, regexp::match_t>& match_cache, std::set<size_t>& unique, size_t rank)
+	static rule_ptr resolve_rule (rule_ptr const& base, rule_ptr rule, std::set<size_t>& unique)
 	{
-		if(unique.find(rule->rule_id) != unique.end())
-			return rank;
-
-		unique.insert(rule->rule_id);
 		while(rule && rule->include_string != NULL_STR)
 		{
 			std::string const& name = rule->include_string;
@@ -258,6 +254,17 @@ namespace parse
 				fprintf(stderr, "failed to resolve %s\n", name.c_str());
 			}
 		}
+
+		return rule;
+	}
+
+	static size_t collect_rule (rule_ptr const& base, char const* first, char const* last, size_t anchor, size_t i, bool firstLine, rule_ptr rule, std::set<ranked_match_t>& res, std::map<size_t, regexp::match_t>& match_cache, std::set<size_t>& unique, size_t rank)
+	{
+		if(unique.find(rule->rule_id) != unique.end())
+			return rank;
+
+		unique.insert(rule->rule_id);
+		rule = resolve_rule(base, rule, unique);
 
 		if(!rule)
 			return rank;
@@ -294,14 +301,42 @@ namespace parse
 		return rank;
 	}
 
+	static repository_t fetch_injections (rule_ptr const& base, rule_ptr rule, std::set<size_t>& unique)
+	{
+		if(!rule || unique.find(rule->rule_id) != unique.end())
+			return repository_t();
+		unique.insert(rule->rule_id);
+
+		typedef std::tuple<int, int> key_t;
+		static std::map<key_t, repository_t> Cache;
+		key_t key(base->rule_id, rule->rule_id);
+		auto found = Cache.find(key);
+		if( found != Cache.end())
+			return found->second;
+		repository_t& injections = Cache[key];
+		rule = resolve_rule(base, rule, unique);
+
+		if(rule->injections)
+			injections.insert(rule->injections->begin(), rule->injections->end());
+
+		iterate(it, rule->children)
+		{
+			if((*it)->match_pattern)
+				continue;
+			repository_t child_injections = fetch_injections(base, *it, unique);
+			injections.insert(child_injections.begin(), child_injections.end());
+		}
+	return injections;
+	}
+
 	static size_t collect_injections (rule_ptr const& base, char const* first, char const* last, stack_ptr const& stack, size_t i, bool firstLine, std::set<ranked_match_t>& res, std::map<size_t, regexp::match_t>& match_cache, std::set<size_t>& unique, size_t rank, scope::context_t const& scope)
 	{
 		for(stack_ptr node = stack; node; node = node->parent)
 		{
-			if(!node->rule->injections)
-				continue;
+			std::set<size_t> u;
+			repository_t injections = fetch_injections(base, node->rule, u);
 
-			iterate(it, *node->rule->injections)
+			iterate(it, injections)
 			{
 				if(scope::selector_t(it->first).does_match(scope))
 					rank = collect_rule(base, first, last, stack->anchor, i, firstLine, it->second, res, match_cache, unique, rank);
