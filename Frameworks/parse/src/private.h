@@ -61,7 +61,7 @@ namespace parse
 	{
 		WATCH_LEAKS(stack_t);
 
-		stack_t (rule_ptr const& rule, scope::scope_t const& scope, stack_ptr const& parent = stack_ptr()) : parent(parent), rule(rule), scope(scope), anchor(0) { }
+		stack_t (rule_ptr const& rule, scope::scope_t const& scope, stack_ptr const& parent = stack_ptr()) : parent(parent), rule(rule), scope(scope), anchor(0), embedded(false) { }
 
 		stack_ptr parent;
 
@@ -73,6 +73,7 @@ namespace parse
 		size_t anchor;
 		bool zw_begin_match;
 		bool apply_end_last;
+		bool embedded;
 
 		bool operator== (stack_t const& rhs) const;
 		bool operator!= (stack_t const& rhs) const;
