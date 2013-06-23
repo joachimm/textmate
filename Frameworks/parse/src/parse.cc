@@ -188,34 +188,40 @@ namespace parse
 		if(!captures)
 			return;
 
+		// {{ begin_index : len } : rule}
 		std::multimap<std::pair<size_t, ssize_t>, rule_ptr> rules;
 
 		repository_t::const_iterator ruleIter = captures->begin();
+		// { "Capture #" : { begin_index, negative end_index}}
 		std::multimap<std::string, std::pair<size_t, size_t> >::const_iterator indexIter = m.capture_indices().begin();
 		while(ruleIter != captures->end() && indexIter != m.capture_indices().end())
 		{
+			// Same capture #, 
 			if(ruleIter->first == indexIter->first)
 				rules.insert(std::make_pair(std::make_pair(indexIter->second.first, -(indexIter->second.second - indexIter->second.first)), ruleIter->second));
-
+			// String compare!
 			if(ruleIter->first < indexIter->first)
 					++ruleIter;
 			else	++indexIter;
 		}
 
+		// { end_index : scope}
 		std::vector< std::pair<size_t, scope::scope_t> > stack;
 		iterate(it, rules)
 		{
 			size_t from = it->first.first;
+			// if end index on stack is lower than from, restore scope
 			for(; !stack.empty() && stack.back().first <= from; stack.pop_back())
 				scope = res[stack.back().first] = stack.back().second;
 
-			size_t to = it->first.first - it->first.second;
+			size_t to = it->first.first - it->first.second; // second (len) is negative
 			stack.push_back(std::make_pair(to, scope));
 
 			rule_ptr const& rule = it->second;
 			if(rule->scope_string != NULL_STR)
 				scope = res[from] = create_scope(scope, rule->scope_string, m);
 
+			// capture rules can have child rules, which parse the captures!
 			if(!rule->children.empty())
 			{
 				D(DBF_Parser, bug("re-parse: ‘%.*s’ (range %zu-%zu)\n", (int)(to - from), m.buffer() + from, from, to););
@@ -224,7 +230,7 @@ namespace parse
 				parse(m.buffer(), m.buffer() + to, stack, res, firstLine, from);
 			}
 		}
-
+		// apply the unhandled endpoints
 		for(; !stack.empty(); stack.pop_back())
 			scope = res[stack.back().first] = stack.back().second;
 	}
@@ -441,6 +447,7 @@ namespace parse
 
 			if(m.match.begin() < i)
 			{
+				// The rule result is no longer useful since a better rank and/or earlier ate the content it parsed. Figure out if it is a begin or end pattern, reapply and restart
 				regexp::pattern_t const& ptrn = m.rank == 0 || m.rank == SIZE_T_MAX ? stack->end_pattern : m.rule->match_pattern;
 				if(m.match = regexp::search(fix_anchor(ptrn, stack->anchor, i, firstLine), first, last, first + i))
 					rules.insert(m);
