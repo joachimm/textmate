@@ -25,12 +25,12 @@ namespace scope
 
 	void scope_t::node_t::retain ()
 	{
-		++_retain_count;
+		_retain_count.fetch_add(1, std::memory_order_relaxed);
 	}
 
 	void scope_t::node_t::release ()
 	{
-		bool shouldDelete = --_retain_count == 0;
+		bool shouldDelete = _retain_count.fetch_sub(1, std::memory_order_acq_rel) == 1;
 		if(shouldDelete)
 			delete this;
 	}
