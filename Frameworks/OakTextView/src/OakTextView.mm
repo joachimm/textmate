@@ -417,7 +417,7 @@ struct refresh_helper_t
 						NSRect imageRect;
 						NSImage* image = [_self imageForRanges:range imageRect:&imageRect];
 						imageRect = [_self convertRect:imageRect toView:nil];
-						imageRect.origin = [[_self window] convertBaseToScreen:imageRect.origin];
+						imageRect.origin = [[_self window] convertRectToScreen:imageRect].origin;
 						OakShowPopOutAnimation(imageRect, image);
 					}
 				}
@@ -617,7 +617,7 @@ static std::string shell_quote (std::vector<std::string> paths)
 		NSRect imageRect;
 		NSImage* image = [self imageForRanges:range imageRect:&imageRect];
 		imageRect = [self convertRect:imageRect toView:nil];
-		imageRect.origin = [[self window] convertBaseToScreen:imageRect.origin];
+		imageRect.origin = [[self window] convertRectToScreen:imageRect].origin;
 		OakShowPopOutAnimation(imageRect, image);
 	}
 }
@@ -1389,7 +1389,8 @@ doScroll:
 		ret = [NSString stringWithCxxString:editor->as_string(range.min().index, range.max().index)];
 	} HANDLE_PATTR(RangeForPosition) {
 		NSPoint point = [((NSValue*)parameter) pointValue];
-		point = [[self window] convertScreenToBase:point];
+		NSRect pointRect = NSMakeRect(point.x, point.y, 0, 0);
+		point = [[self window] convertRectFromScreen:pointRect].origin;
 		point = [self convertPoint:point fromView:nil];
 		size_t index = layout->index_at_point(point).index;
 		index = document->buffer().sanitize_index(index);
@@ -2095,9 +2096,10 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 	CGRect r1 = layout->rect_at_index(editor->ranges().last().normalized().first);
 	CGRect r2 = layout->rect_at_index(editor->ranges().last().normalized().last);
 	CGRect r = r1.origin.y == r2.origin.y && r1.origin.x < r2.origin.x ? r1 : r2;
-	NSPoint p = NSMakePoint(CGRectGetMinX(r), CGRectGetMaxY(r)+4);
+	NSRect rect = NSMakeRect(CGRectGetMinX(r), CGRectGetMaxY(r)+4, 0, 0);
+	NSPoint p = rect.origin;
 	if(NSPointInRect(p, [self visibleRect]))
-			{ p = [[self window] convertBaseToScreen:[self convertPoint:p toView:nil]]; }
+			{ p = [[self window] convertRectToScreen:[self convertRect:rect toView:nil]].origin; }
 	else	{ p = [NSEvent mouseLocation]; p.y -= 16; }
 
 	return p;
@@ -2195,9 +2197,11 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 {
 	NSWindow* win = [self window];
 	NSEvent* anEvent = [NSApp currentEvent];
+	NSPoint point = [self positionForWindowUnderCaret];
+	NSRect pointRect = NSMakeRect(point.x, point.y, 0, 0);
 	NSEvent* fakeEvent = [NSEvent
 		mouseEventWithType:NSLeftMouseDown
-		location:[win convertScreenToBase:[self positionForWindowUnderCaret]]
+		location:[win convertRectFromScreen:pointRect].origin
 		modifierFlags:0
 		timestamp:[anEvent timestamp]
 		windowNumber:[win windowNumber]

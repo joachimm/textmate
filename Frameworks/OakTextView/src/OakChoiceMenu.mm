@@ -61,7 +61,9 @@ enum action_t { kActionNop, kActionTab, kActionReturn, kActionCancel, kActionMov
 - (void)viewBoundsDidChange:(NSNotification*)aNotification
 {
 	NSView* aView = [[aNotification object] documentView];
-	[window setFrameTopLeftPoint:[[aView window] convertBaseToScreen:[aView convertPointToBase:topLeftPosition]]];
+	NSPoint point = [aView convertPoint:topLeftPosition toView:nil];
+	NSRect pointRect = NSMakeRect(point.x, point.y, 0, 0);
+	[window setFrameTopLeftPoint:[[aView window] convertRectToScreen:pointRect].origin];
 }
 
 - (NSString*)selectedChoice
@@ -112,7 +114,8 @@ enum action_t { kActionNop, kActionTab, kActionReturn, kActionCancel, kActionMov
 
 - (void)showAtTopLeftPoint:(NSPoint)aPoint forView:(NSView*)aView
 {
-	window = [[NSPanel alloc] initWithContentRect:NSMakeRect(aPoint.x, aPoint.y, 0, 0) styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
+	NSRect pointRect = NSMakeRect(aPoint.x, aPoint.y, 0, 0);
+	window = [[NSPanel alloc] initWithContentRect:pointRect styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
 	[window setReleasedWhenClosed:NO];
 	[window setOpaque:NO];
 	window.alphaValue         = 0.97;
@@ -147,7 +150,7 @@ enum action_t { kActionNop, kActionTab, kActionReturn, kActionCancel, kActionMov
 
 	[self sizeToFit];
 
-	topLeftPosition = [aView convertPointFromBase:[[aView window] convertScreenToBase:aPoint]];
+	topLeftPosition = [aView convertRect:[[aView window] convertRectFromScreen:pointRect] fromView:nil].origin;
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewBoundsDidChange:) name:NSViewBoundsDidChangeNotification object:[[aView enclosingScrollView] contentView]];
 	[[aView window] addChildWindow:window ordered:NSWindowAbove];
 

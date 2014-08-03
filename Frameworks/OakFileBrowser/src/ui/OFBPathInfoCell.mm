@@ -161,7 +161,8 @@ static void DrawSpinner (NSRect cellFrame, BOOL isFlipped, NSColor* color, doubl
 
 - (NSUInteger)hitTestForEvent:(NSEvent*)event inRect:(NSRect)cellFrame ofView:(NSView*)controlView
 {
-	NSPoint point = [controlView convertPoint:([event window] ? [event locationInWindow] : [[controlView window] convertScreenToBase:[event locationInWindow]]) fromView:nil];
+	NSPoint eventPoint = [event locationInWindow];
+	NSPoint point = [controlView convertPoint:([event window] ? eventPoint : [[controlView window] convertRectFromScreen:NSMakeRect(eventPoint.x, eventPoint.y, 0, 0)].origin) fromView:nil];
 
 	if(NSMouseInRect(point, [self closeButtonRectInFrame:cellFrame], [controlView isFlipped]))
 		return NSCellHitContentArea | NSCellHitTrackableArea | OFBPathInfoCellHitCloseButton;
